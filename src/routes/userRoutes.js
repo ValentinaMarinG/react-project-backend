@@ -20,14 +20,14 @@ routes.post("/",(req,res) =>{
     }
 
     new_user.save()
-            .then((data) => res.json(data))
+            .then((data) => res.status(201).json(data))
             .catch((err) => res.json({ message:err }));
 });
 
 /* Listar todos los usuarios */
 routes.get("/",(req,res) => {
     user_model.find()
-    .then((data) => res.json(data))
+    .then((data) => res.status(200).json(data))
     .catch((err) => res.json({ message:err }));
 });
 
@@ -35,7 +35,7 @@ routes.get("/",(req,res) => {
 routes.get("/:userId",(req,res) => {
     const { userId } = req.params;
     user_model.find({_id:userId})
-    .then((data) => res.json(data))
+    .then((data) => res.status(200).json(data))
     .catch((err) => res.json({ message:err }));
 });
 
@@ -45,7 +45,7 @@ routes.put("/:userId",(req,res) => {
     const query = {_id:userId};
     const update = {$set:req.body};
     user_model.updateOne(query,update)
-              .then((data) => res.json(data))
+              .then((data) => res.status(200).json(data))
               .catch((err) => res.json({ message:err }));
 });
 
@@ -53,7 +53,7 @@ routes.put("/:userId",(req,res) => {
 routes.delete("/:userId",(req,res) => {
     const { userId } = req.params;
     user_model.deleteOne({_id:userId})
-              .then((data) => res.json(data))
+              .then((data) => res.status(200).json(data))
               .catch((err) => res.json({ message:err }));
 });
 
