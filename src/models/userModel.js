@@ -7,12 +7,12 @@ const userSchema = new Schema({
     country : {type:String, required:true},
     department : {type:String},
     municipality : {type:String},
-    state : {type:String},
+    state : {type:String, default:""},
     document_type : {type:String, required:true},
     document : {type:String, required:true, unique:true},
     email : {type:String, required:true, unique:true},
     password : {type:String, required:true},
-    avatar : {type:String, null:true},
+    avatar : {type:String},
     active : {type:Boolean, default:false},
     role : {type:String, default:"guess"}
 });

@@ -1,60 +1,27 @@
 const express = require("express");
-const user_model = require("../models/userModel");
-const routes = express.Router();
+const multiparty = require("connect-multiparty");
+const UserController = require("../controllers/user");
+const middleware_authentication = require("../middlewares/authenticated");
 
-/* VALIDACIONES */
+const fs = require("fs");
 
-/* Validación del Email */
-function validateEmail(email) {
-    const emaildomain= /@(gmail|outlook)\.com$/;
-    return emaildomain.test(email);
+const uploadDir = "./uploads/users/avatar";
+
+// Verificar si el directorio existe, si no, crearlo
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
 }
 
-/* CRUD USUARIOS */
-/* Crear un usuario - Registrar */
-routes.post("/",(req,res) =>{
-    const new_user = user_model(req.body);
+const md_upload = multiparty({ uploadDir: "./uploads/users/avatar" });
 
-    if (!validateEmail(new_user.email)) {
-        return res.status(400).json({ message: "El correo electrónico no es válido" });
-    }
+const api = express.Router();
 
-    new_user.save()
-            .then((data) => res.status(201).json(data))
-            .catch((err) => res.json({ message:err }));
-});
+/* Sólo los usuarios registrados pueden acceder a las rutas */
+api.get("/me", [middleware_authentication.ensureAuth], UserController.getMe);
+api.get("/", [middleware_authentication.ensureAuth], UserController.getUsers);
+api.get("/:id", [middleware_authentication.ensureAuth], UserController.getUser);
+api.post("/user", [middleware_authentication.ensureAuth, md_upload], UserController.createUser);
+api.patch("/:id", [middleware_authentication.ensureAuth, md_upload], UserController.updateUser);
+api.delete("/:id", [middleware_authentication.ensureAuth], UserController.deleteUser);
 
-/* Listar todos los usuarios */
-routes.get("/",(req,res) => {
-    user_model.find()
-    .then((data) => res.status(200).json(data))
-    .catch((err) => res.json({ message:err }));
-});
-
-/* Consultar un usuario especifico por su id */
-routes.get("/:userId",(req,res) => {
-    const { userId } = req.params;
-    user_model.find({_id:userId})
-    .then((data) => res.status(200).json(data))
-    .catch((err) => res.json({ message:err }));
-});
-
-/* Editar un usuario */
-routes.put("/:userId",(req,res) => {
-    const userId = req.params.userId;
-    const query = {_id:userId};
-    const update = {$set:req.body};
-    user_model.updateOne(query,update)
-              .then((data) => res.status(200).json(data))
-              .catch((err) => res.json({ message:err }));
-});
-
-/* Eliminar uno de los usuarios por su id */
-routes.delete("/:userId",(req,res) => {
-    const { userId } = req.params;
-    user_model.deleteOne({_id:userId})
-              .then((data) => res.status(200).json(data))
-              .catch((err) => res.json({ message:err }));
-});
-
-module.exports = routes;
+module.exports = api;
